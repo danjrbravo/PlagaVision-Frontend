@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../lib/api";
+import axios from "../axiosConfig";
 import { useToast } from "../App";
 
 // ── ICONS ────────────────────────────────────────────────────────
@@ -153,9 +153,9 @@ export default function AnalyzePage() {
         const form = new FormData();
         form.append("image", file);
         form.append("name", name);
-        res = await API.post("/api/analyze", form);
+        res = await axios.post("/api/analyze", form);
       } else {
-        res = await API.post("/api/analyze", {
+        res = await axios.post("/api/analyze", {
           image_b64: capturedB64,
           name
         });

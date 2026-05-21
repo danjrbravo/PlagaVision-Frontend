@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import API from "../lib/api";
+import axios from "../axiosConfig";
 import { useToast } from "../App";
 
-
+const API = import.meta.env.VITE_API_URL || "";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
@@ -90,7 +90,7 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    API.get(`/api/history/${id}`)
+    axios.get(`/api/history/${id}`)
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
@@ -100,7 +100,7 @@ export default function ResultPage() {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await API.delete(`/api/history/${id}`);
+      await axios.delete(`/api/history/${id}`);
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
