@@ -1,7 +1,10 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../axiosConfig";
+import axios from "axios";
 import { useToast } from "../App";
+
+// ── HARDCODED API URL ──
+const API_URL = "http://api.plagavision.djrbweb.com:5000";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconUpload() {
@@ -153,9 +156,9 @@ export default function AnalyzePage() {
         const form = new FormData();
         form.append("image", file);
         form.append("name", name);
-        res = await axios.post("/api/analyze", form);
+        res = await axios.post(`${API_URL}/api/analyze`, form);
       } else {
-        res = await axios.post("/api/analyze", {
+        res = await axios.post(`${API_URL}/api/analyze`, {
           image_b64: capturedB64,
           name
         });

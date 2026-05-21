@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "../axiosConfig";
+import axios from "axios";
 import { useToast } from "../App";
 
-const API = import.meta.env.VITE_API_URL || "";
+// ── HARDCODED API URL ──
+const API = "http://api.plagavision.djrbweb.com:5000";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
@@ -64,11 +65,10 @@ function ConfBar({ value }) {
 }
 
 const PRESET = {
-  "Brown Planthopper": "#8B4513", // café
-  "Water weevil": "#3b82f6",      // azul
-
-  "Army worm": "#ef4444",         // rojo (ejemplo)
-  "Leaf hopper": "#22c55e",       // verde (ejemplo)
+  "Brown Planthopper": "#8B4513",
+  "Water weevil": "#3b82f6",
+  "Army worm": "#ef4444",
+  "Leaf hopper": "#22c55e",
 };
 
 function classColor(name, index) {
@@ -85,12 +85,12 @@ export default function ResultPage() {
 
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
-  const [view, setView]         = useState("result"); // "result" | "original"
+  const [view, setView]         = useState("result");
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    axios.get(`/api/history/${id}`)
+    axios.get(`${API}/api/history/${id}`)
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
@@ -100,7 +100,7 @@ export default function ResultPage() {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await axios.delete(`/api/history/${id}`);
+      await axios.delete(`${API}/api/history/${id}`);
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
@@ -154,12 +154,10 @@ export default function ResultPage() {
   const classNames   = Object.keys(counts);
   const totalObjects = data.total_objects || 0;
 
-  // sort detections by confidence desc
   const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
 
   return (
     <>
-      {/* HEADER */}
       <div className="page-header">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
@@ -191,7 +189,6 @@ export default function ResultPage() {
       </div>
 
       <div className="page-body">
-        {/* STAT ROW */}
         <div className="stat-row" style={{ gridTemplateColumns: `repeat(${Math.min(classNames.length + 1, 4)}, 1fr)` }}>
           <div className="stat-card">
             <p className="stat-label">Total detectado</p>
@@ -205,9 +202,7 @@ export default function ResultPage() {
           ))}
         </div>
 
-        {/* IMAGES + DETECTIONS */}
         <div className="result-split">
-          {/* IMAGE */}
           <div className="card">
             <div className="card-header">
               <span className="card-title">Imagen</span>
@@ -230,7 +225,6 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* DETECTIONS LIST */}
           <div className="card">
             <div className="card-header">
               <span className="card-title">Detecciones</span>
@@ -278,7 +272,6 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* CLASS DISTRIBUTION */}
         {classNames.length > 0 && (
           <div className="card" style={{ marginTop: 24 }}>
             <div className="card-header">
