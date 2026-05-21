@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── HARDCODED API URL ──
-const API = "http://api.plagavision.djrbweb.com:5000";
+// ── API URL (usar rutas relativas) ──
+const API = "";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
@@ -22,15 +22,6 @@ function IconTrash() {
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
       <path d="M10 11v6"/><path d="M14 11v6"/>
       <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-    </svg>
-  );
-}
-
-function IconCompare() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="8" height="18" rx="1"/>
-      <rect x="13" y="3" width="8" height="18" rx="1"/>
     </svg>
   );
 }
@@ -90,17 +81,17 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API}/api/history/${id}`)
+    axios.get(`/api/history/${id}`, { timeout: 30000 })
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, addToast]);
 
   const handleDelete = async () => {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API}/api/history/${id}`);
+      await axios.delete(`/api/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
@@ -112,7 +103,7 @@ export default function ResultPage() {
   const downloadResult = async () => {
     setDownloading(true);
     try {
-      const response = await fetch(`${API}${data.result_url}`);
+      const response = await fetch(`${data.result_url}`, { signal: AbortSignal.timeout(30000) });
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -217,7 +208,7 @@ export default function ResultPage() {
             </div>
             <div className="card-body" style={{ padding: 0 }}>
               <img
-                src={`${API}${view === "result" ? data.result_url : data.upload_url}`}
+                src={`${view === "result" ? data.result_url : data.upload_url}`}
                 alt={view}
                 className="result-image"
                 style={{ borderRadius: 0, border: "none", maxHeight: 520 }}
