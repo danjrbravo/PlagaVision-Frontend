@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../lib/api";
 import { useToast } from "../App";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -84,7 +84,7 @@ function StatisticsFooter() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get("/api/stats");
+      const res = await API.get("/api/stats");
       setStats(res.data);
     } catch (error) {
       addToast("Error al cargar estadísticas", "error");
@@ -249,7 +249,7 @@ export default function HistoryPage() {
   const fetchHistory = useCallback(async (p = 1) => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/history?page=${p}&per_page=${PER_PAGE}`);
+      const res = await API.get(`/api/history?page=${p}&per_page=${PER_PAGE}`);
       setItems(res.data.results);
       setPages(res.data.pages);
       setTotal(res.data.total);
@@ -266,7 +266,7 @@ export default function HistoryPage() {
   const handleDeleteAll = async () => {
     if (!window.confirm("¿Seguro que quieres borrar TODO el historial?")) return;
     try {
-      await axios.delete("/api/history");
+      await API.delete("/api/history");
       addToast("Historial eliminado", "success");
       await fetchHistory(1);
     } catch {
@@ -277,7 +277,7 @@ export default function HistoryPage() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
     try {
-      await axios.delete(`/api/history/${id}`);
+      await API.delete(`/api/history/${id}`);
       addToast("Análisis eliminado", "success");
       fetchHistory(page);
     } catch {
