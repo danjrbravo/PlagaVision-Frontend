@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../lib/api";
 import { useToast } from "../App";
 
-const API = import.meta.env.VITE_API_URL || "";
+
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
