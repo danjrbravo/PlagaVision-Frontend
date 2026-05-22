@@ -2,9 +2,11 @@ import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
+import { API_URL } from "../api";
 
-import { API_URL } from "../config";
+// API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
+
 // ── ICONS ────────────────────────────────────────────────────────
 function IconUpload() {
   return (
@@ -75,7 +77,7 @@ export default function AnalyzePage() {
   const validateFile = (f) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(f.type)) {
-      addToast("Formato no soportado. Usa JPG,JPEG PNG o WEBP.", "error");
+      addToast("Formato no soportado. Usa JPG, JPEG, PNG o WEBP.", "error");
       return false;
     }
     if (f.size > 20 * 1024 * 1024) {
@@ -155,9 +157,11 @@ export default function AnalyzePage() {
         const form = new FormData();
         form.append("image", file);
         form.append("name", name);
-        res = await axios.post(`${API}/api/analyze`, form, { timeout: 120000 });
+        // ✅ CORREGIDO: API ya incluye /api, no duplicar
+        res = await axios.post(`${API}/analyze`, form, { timeout: 120000 });
       } else {
-        res = await axios.post(`${API}/api/analyze`, {
+        // ✅ CORREGIDO: API ya incluye /api, no duplicar
+        res = await axios.post(`${API}/analyze`, {
           image_b64: capturedB64,
           name
         }, { timeout: 120000 });
@@ -165,6 +169,7 @@ export default function AnalyzePage() {
       addToast("Análisis completado", "success");
       navigate(`/result/${res.data._id}`);
     } catch (err) {
+      console.error("Error detallado:", err);
       addToast(err.response?.data?.error || "Error al analizar la imagen", "error");
     } finally {
       setLoading(false);

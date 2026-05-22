@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
+import { API_URL } from "../api";
 
-// Por esto:
-import { API_URL } from "../config";
+// API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
+
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
   return (
@@ -81,7 +82,8 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API}/api/history/${id}`, { timeout: 30000 })
+    // ✅ CORREGIDO: API ya incluye /api, no duplicar
+    axios.get(`${API}/history/${id}`, { timeout: 30000 })
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
@@ -91,7 +93,8 @@ export default function ResultPage() {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API}/api/history/${id}`, { timeout: 30000 });
+      // ✅ CORREGIDO: API ya incluye /api, no duplicar
+      await axios.delete(`${API}/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
