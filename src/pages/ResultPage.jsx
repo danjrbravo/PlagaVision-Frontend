@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
-import { API_URL } from "../api";
+import { API_URL } from "../api.js";
 
 // API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
