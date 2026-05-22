@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API = "";
+import { API_URL } from "../config";
+const API = API_URL;
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconTrash() {
@@ -68,7 +68,7 @@ function StatisticsFooter() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`/api/stats`, { timeout: 30000 });
+      const res = await axios.get(`${API}/api/stats`, { timeout: 30000 });
       setStats(res.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -229,7 +229,7 @@ export default function HistoryPage() {
   const fetchHistory = useCallback(async (p = 1) => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/history?page=${p}&per_page=${PER_PAGE}`, { timeout: 30000 });
+      const res = await axios.get(`${API}/api/history?page=${p}&per_page=${PER_PAGE}`, { timeout: 30000 });
       setItems(res.data.results);
       setPages(res.data.pages);
       setTotal(res.data.total);
@@ -249,7 +249,7 @@ export default function HistoryPage() {
   const handleDeleteAll = async () => {
     if (!window.confirm("¿Seguro que quieres borrar TODO el historial?")) return;
     try {
-      await axios.delete(`/api/history`, { timeout: 30000 });
+      await axios.delete(`${API}/api/history`, { timeout: 30000 });
       addToast("Historial eliminado", "success");
       await fetchHistory(1);
     } catch {
@@ -260,7 +260,7 @@ export default function HistoryPage() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
     try {
-      await axios.delete(`/api/history/${id}`, { timeout: 30000 });
+      await axios.delete(`${API}/api/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       fetchHistory(page);
     } catch {

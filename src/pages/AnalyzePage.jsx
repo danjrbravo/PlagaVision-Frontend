@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API_URL = "";
-
+import { API_URL } from "../config";
+const API = API_URL;
 // ── ICONS ────────────────────────────────────────────────────────
 function IconUpload() {
   return (
@@ -156,9 +155,9 @@ export default function AnalyzePage() {
         const form = new FormData();
         form.append("image", file);
         form.append("name", name);
-        res = await axios.post(`/api/analyze`, form, { timeout: 120000 });
+        res = await axios.post(`${API}/api/analyze`, form, { timeout: 120000 });
       } else {
-        res = await axios.post(`/api/analyze`, {
+        res = await axios.post(`${API}/api/analyze`, {
           image_b64: capturedB64,
           name
         }, { timeout: 120000 });

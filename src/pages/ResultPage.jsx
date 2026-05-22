@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API = "";
-
+// Por esto:
+import { API_URL } from "../config";
+const API = API_URL;
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
   return (
@@ -81,7 +81,7 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    axios.get(`/api/history/${id}`, { timeout: 30000 })
+    axios.get(`${API}/api/history/${id}`, { timeout: 30000 })
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
@@ -91,7 +91,7 @@ export default function ResultPage() {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await axios.delete(`/api/history/${id}`, { timeout: 30000 });
+      await axios.delete(`${API}/api/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
