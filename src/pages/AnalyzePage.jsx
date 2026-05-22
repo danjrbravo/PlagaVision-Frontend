@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API_URL = "";
-
 // ── ICONS ────────────────────────────────────────────────────────
 function IconUpload() {
   return (
@@ -156,12 +153,12 @@ export default function AnalyzePage() {
         const form = new FormData();
         form.append("image", file);
         form.append("name", name);
-        res = await axios.post(`/api/analyze`, form, { timeout: 120000 });
+        res = await axios.post("/api/analyze", form);
       } else {
-        res = await axios.post(`/api/analyze`, {
+        res = await axios.post("/api/analyze", {
           image_b64: capturedB64,
           name
-        }, { timeout: 120000 });
+        });
       }
       addToast("Análisis completado", "success");
       navigate(`/result/${res.data._id}`);
@@ -183,7 +180,7 @@ export default function AnalyzePage() {
     <>
       <div className="page-header">
         <h1 className="page-title">Nuevo Análisis</h1>
-        <p className="page-subtitle">Sube una imagen o usa la cámara para detectar plagas del arroz (Sogata verde del arroz, gorgojito de agua, chinche marrón y gusano cogollero) con YOLO</p>
+        <p className="page-subtitle">Sube una imagen o usa la cámara para detectar plagas del arroz (Sogata verde del arroz,gorgojito de agua,chinche marrón y gusano cogollero) con YOLO</p>
       </div>
 
       <div className="page-body">
@@ -245,7 +242,7 @@ export default function AnalyzePage() {
                   />
                   <div className="drop-zone-icon"><IconUpload /></div>
                   <p className="drop-zone-title">Arrastra una imagen o haz clic</p>
-                  <p className="drop-zone-sub">JPG, JPEG, PNG, WEBP — máx. 20 MB</p>
+                  <p className="drop-zone-sub">JPG,JPEG, PNG, WEBP — máx. 20 MB</p>
                 </label>
               ) : (
                 /* CAMERA */

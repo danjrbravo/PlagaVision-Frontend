@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API = "";
+const API = import.meta.env.VITE_API_URL || "";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconTrash() {
@@ -23,6 +22,22 @@ function IconEye() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
       <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
+function IconSearch() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   );
 }
@@ -57,10 +72,11 @@ function classColor(name, i = 0) {
   return `hsl(${(i * 47) % 360}, 70%, 55%)`;
 }
 
-// ── STATISTICS COMPONENT (con manejo de errores silencioso) ────────
+// ── STATISTICS COMPONENT ──────────────────────────────────────────
 function StatisticsFooter() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const addToast = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -68,12 +84,11 @@ function StatisticsFooter() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`/api/stats`, { timeout: 30000 });
+      const res = await axios.get("/api/stats");
       setStats(res.data);
     } catch (error) {
+      addToast("Error al cargar estadísticas", "error");
       console.error("Error fetching stats:", error);
-      // No mostrar toast para no molestar al usuario
-      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -89,10 +104,15 @@ function StatisticsFooter() {
   }
 
   if (!stats || stats.total_analyses === 0) {
-    return null; // Ocultar si no hay datos
+    return (
+      <div className="stats-footer empty">
+        <IconChart />
+        <span>Sin datos estadísticos disponibles</span>
+      </div>
+    );
   }
 
-  const totalDetections = stats.class_distribution?.reduce((sum, item) => sum + item.count, 0) || 0;
+  const totalDetections = stats.class_distribution.reduce((sum, item) => sum + item.count, 0);
 
   return (
     <div className="stats-footer">
@@ -115,7 +135,7 @@ function StatisticsFooter() {
       <div className="stats-distribution">
         <div className="stats-subtitle">Distribución por Plaga</div>
         <div className="distribution-bars">
-          {stats.class_distribution?.map((item, index) => (
+          {stats.class_distribution.map((item, index) => (
             <div key={item.class} className="distribution-item">
               <div className="distribution-label">
                 <span 
@@ -154,10 +174,10 @@ function HistoryCard({ item, onView, onDelete }) {
     <div className="history-card">
       <div style={{ position: "relative" }} onClick={() => onView(item._id)}>
         <img
-          src={`${item.result_url}`}
+          src={`${API}${item.result_url}`}
           alt={item.name}
           className="history-thumb"
-          onError={(e) => { e.target.src = item.upload_url; }}
+          onError={(e) => { e.target.src = `${API}${item.upload_url}`; }}
         />
         <div style={{
           position: "absolute", top: 10, right: 10,
@@ -229,27 +249,24 @@ export default function HistoryPage() {
   const fetchHistory = useCallback(async (p = 1) => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/history?page=${p}&per_page=${PER_PAGE}`, { timeout: 30000 });
+      const res = await axios.get(`/api/history?page=${p}&per_page=${PER_PAGE}`);
       setItems(res.data.results);
       setPages(res.data.pages);
       setTotal(res.data.total);
       setPage(p);
-    } catch (error) {
-      console.error("Error fetching history:", error);
+    } catch {
       addToast("Error al cargar el historial", "error");
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, []);
 
-  useEffect(() => { 
-    fetchHistory(1); 
-  }, [fetchHistory]);
+  useEffect(() => { fetchHistory(1); }, [fetchHistory]);
 
   const handleDeleteAll = async () => {
     if (!window.confirm("¿Seguro que quieres borrar TODO el historial?")) return;
     try {
-      await axios.delete(`/api/history`, { timeout: 30000 });
+      await axios.delete("/api/history");
       addToast("Historial eliminado", "success");
       await fetchHistory(1);
     } catch {
@@ -260,7 +277,7 @@ export default function HistoryPage() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
     try {
-      await axios.delete(`/api/history/${id}`, { timeout: 30000 });
+      await axios.delete(`/api/history/${id}`);
       addToast("Análisis eliminado", "success");
       fetchHistory(page);
     } catch {

@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useToast } from "../App";
 
-// ── API URL (usar rutas relativas) ──
-const API = "";
+const API = import.meta.env.VITE_API_URL || "";
 
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
@@ -22,6 +21,15 @@ function IconTrash() {
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
       <path d="M10 11v6"/><path d="M14 11v6"/>
       <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+    </svg>
+  );
+}
+
+function IconCompare() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="8" height="18" rx="1"/>
+      <rect x="13" y="3" width="8" height="18" rx="1"/>
     </svg>
   );
 }
@@ -56,10 +64,11 @@ function ConfBar({ value }) {
 }
 
 const PRESET = {
-  "Brown Planthopper": "#8B4513",
-  "Water weevil": "#3b82f6",
-  "Army worm": "#ef4444",
-  "Leaf hopper": "#22c55e",
+  "Brown Planthopper": "#8B4513", // café
+  "Water weevil": "#3b82f6",      // azul
+
+  "Army worm": "#ef4444",         // rojo (ejemplo)
+  "Leaf hopper": "#22c55e",       // verde (ejemplo)
 };
 
 function classColor(name, index) {
@@ -76,22 +85,22 @@ export default function ResultPage() {
 
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
-  const [view, setView]         = useState("result");
+  const [view, setView]         = useState("result"); // "result" | "original"
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    axios.get(`/api/history/${id}`, { timeout: 30000 })
+    axios.get(`/api/history/${id}`)
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
       .finally(() => setLoading(false));
-  }, [id, addToast]);
+  }, [id]);
 
   const handleDelete = async () => {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      await axios.delete(`/api/history/${id}`, { timeout: 30000 });
+      await axios.delete(`/api/history/${id}`);
       addToast("Análisis eliminado", "success");
       navigate("/history");
     } catch {
@@ -103,7 +112,7 @@ export default function ResultPage() {
   const downloadResult = async () => {
     setDownloading(true);
     try {
-      const response = await fetch(`${data.result_url}`, { signal: AbortSignal.timeout(30000) });
+      const response = await fetch(`${API}${data.result_url}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -145,10 +154,12 @@ export default function ResultPage() {
   const classNames   = Object.keys(counts);
   const totalObjects = data.total_objects || 0;
 
+  // sort detections by confidence desc
   const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
 
   return (
     <>
+      {/* HEADER */}
       <div className="page-header">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
@@ -180,6 +191,7 @@ export default function ResultPage() {
       </div>
 
       <div className="page-body">
+        {/* STAT ROW */}
         <div className="stat-row" style={{ gridTemplateColumns: `repeat(${Math.min(classNames.length + 1, 4)}, 1fr)` }}>
           <div className="stat-card">
             <p className="stat-label">Total detectado</p>
@@ -193,7 +205,9 @@ export default function ResultPage() {
           ))}
         </div>
 
+        {/* IMAGES + DETECTIONS */}
         <div className="result-split">
+          {/* IMAGE */}
           <div className="card">
             <div className="card-header">
               <span className="card-title">Imagen</span>
@@ -208,7 +222,7 @@ export default function ResultPage() {
             </div>
             <div className="card-body" style={{ padding: 0 }}>
               <img
-                src={`${view === "result" ? data.result_url : data.upload_url}`}
+                src={`${API}${view === "result" ? data.result_url : data.upload_url}`}
                 alt={view}
                 className="result-image"
                 style={{ borderRadius: 0, border: "none", maxHeight: 520 }}
@@ -216,6 +230,7 @@ export default function ResultPage() {
             </div>
           </div>
 
+          {/* DETECTIONS LIST */}
           <div className="card">
             <div className="card-header">
               <span className="card-title">Detecciones</span>
@@ -263,6 +278,7 @@ export default function ResultPage() {
           </div>
         </div>
 
+        {/* CLASS DISTRIBUTION */}
         {classNames.length > 0 && (
           <div className="card" style={{ marginTop: 24 }}>
             <div className="card-header">
