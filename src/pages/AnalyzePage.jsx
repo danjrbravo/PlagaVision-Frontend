@@ -75,6 +75,13 @@ export default function AnalyzePage() {
 
   // ── VALIDATION ──
   const validateFile = (f) => {
+    // Bloquear explícitamente archivos .jfif
+    const fileName = f.name.toLowerCase();
+    if (fileName.endsWith('.jfif')) {
+      addToast("Formato JFIF no soportado. Usa JPG, JPEG, PNG o WEBP.", "error");
+      return false;
+    }
+    
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(f.type)) {
       addToast("Formato no soportado. Usa JPG, JPEG, PNG o WEBP.", "error");
