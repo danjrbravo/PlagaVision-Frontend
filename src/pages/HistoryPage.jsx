@@ -7,6 +7,26 @@ import { API_URL } from "../api.js";
 // API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
 
+// 🔥 NUEVA FUNCIÓN: Construir URL completa para imágenes
+const getImageUrl = (path) => {
+  if (!path) return '';
+  
+  // Si ya es una URL completa, devolverla
+  if (path.startsWith('http')) return path;
+  
+  // Si estamos en producción, construir URL completa con el backend
+  if (import.meta.env.MODE === 'production') {
+    // Asegurarse de que el path comience con /api
+    const apiPath = path.startsWith('/api') ? path : `/api${path}`;
+    // Usar la URL base del backend
+    const BACKEND_BASE = import.meta.env.VITE_API_URL || 'http://api.plagavision.djrbweb.com:5002';
+    return `${BACKEND_BASE}${apiPath}`;
+  }
+  
+  // Desarrollo: usar ruta relativa
+  return path;
+};
+
 // ── ICONS ────────────────────────────────────────────────────────
 function IconTrash() {
   return (
@@ -70,7 +90,6 @@ function StatisticsFooter() {
 
   const fetchStats = async () => {
     try {
-      // ✅ CORREGIDO: API ya incluye /api, no duplicar
       const res = await axios.get(`${API}/stats`, { timeout: 30000 });
       setStats(res.data);
     } catch (error) {
@@ -152,14 +171,18 @@ function HistoryCard({ item, onView, onDelete }) {
     day: "2-digit", month: "short", year: "numeric"
   });
 
+  // 🔥 CORREGIDO: Usar URLs completas para las imágenes
+  const resultImageUrl = getImageUrl(item.result_url);
+  const uploadImageUrl = getImageUrl(item.upload_url);
+
   return (
     <div className="history-card">
       <div style={{ position: "relative" }} onClick={() => onView(item._id)}>
         <img
-          src={`${item.result_url}`}
+          src={resultImageUrl}
           alt={item.name}
           className="history-thumb"
-          onError={(e) => { e.target.src = item.upload_url; }}
+          onError={(e) => { e.target.src = uploadImageUrl; }}
         />
         <div style={{
           position: "absolute", top: 10, right: 10,
@@ -231,7 +254,6 @@ export default function HistoryPage() {
   const fetchHistory = useCallback(async (p = 1) => {
     setLoading(true);
     try {
-      // ✅ CORREGIDO: API ya incluye /api, no duplicar
       const res = await axios.get(`${API}/history?page=${p}&per_page=${PER_PAGE}`, { timeout: 30000 });
       setItems(res.data.results);
       setPages(res.data.pages);
@@ -252,7 +274,6 @@ export default function HistoryPage() {
   const handleDeleteAll = async () => {
     if (!window.confirm("¿Seguro que quieres borrar TODO el historial?")) return;
     try {
-      // ✅ CORREGIDO: API ya incluye /api, no duplicar
       await axios.delete(`${API}/history`, { timeout: 30000 });
       addToast("Historial eliminado", "success");
       await fetchHistory(1);
@@ -264,7 +285,6 @@ export default function HistoryPage() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
     try {
-      // ✅ CORREGIDO: API ya incluye /api, no duplicar
       await axios.delete(`${API}/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       fetchHistory(page);

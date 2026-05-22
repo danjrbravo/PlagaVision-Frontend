@@ -7,6 +7,26 @@ import { API_URL } from "../api.js";
 // API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
 
+// 🔥 NUEVA FUNCIÓN: Construir URL completa para imágenes
+const getImageUrl = (path) => {
+  if (!path) return '';
+  
+  // Si ya es una URL completa, devolverla
+  if (path.startsWith('http')) return path;
+  
+  // Si estamos en producción, construir URL completa con el backend
+  if (import.meta.env.MODE === 'production') {
+    // Asegurarse de que el path comience con /api
+    const apiPath = path.startsWith('/api') ? path : `/api${path}`;
+    // Usar la URL base del backend
+    const BACKEND_BASE = import.meta.env.VITE_API_URL || 'http://api.plagavision.djrbweb.com:5002';
+    return `${BACKEND_BASE}${apiPath}`;
+  }
+  
+  // Desarrollo: usar ruta relativa
+  return path;
+};
+
 // ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
   return (
@@ -82,7 +102,6 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    // ✅ CORREGIDO: API ya incluye /api, no duplicar
     axios.get(`${API}/history/${id}`, { timeout: 30000 })
       .then(r => setData(r.data))
       .catch(() => addToast("No se pudo cargar el análisis", "error"))
@@ -93,7 +112,6 @@ export default function ResultPage() {
     if (!window.confirm("¿Eliminar este análisis?")) return;
     setDeleting(true);
     try {
-      // ✅ CORREGIDO: API ya incluye /api, no duplicar
       await axios.delete(`${API}/history/${id}`, { timeout: 30000 });
       addToast("Análisis eliminado", "success");
       navigate("/history");
@@ -106,7 +124,9 @@ export default function ResultPage() {
   const downloadResult = async () => {
     setDownloading(true);
     try {
-      const response = await fetch(`${data.result_url}`, { signal: AbortSignal.timeout(30000) });
+      // 🔥 CORREGIDO: Usar URL completa para descargar
+      const imageUrl = getImageUrl(data.result_url);
+      const response = await fetch(imageUrl, { signal: AbortSignal.timeout(30000) });
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -149,6 +169,10 @@ export default function ResultPage() {
   const totalObjects = data.total_objects || 0;
 
   const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
+
+  // 🔥 CORREGIDO: Obtener URLs completas de las imágenes
+  const resultImageUrl = getImageUrl(data.result_url);
+  const originalImageUrl = getImageUrl(data.upload_url);
 
   return (
     <>
@@ -210,11 +234,16 @@ export default function ResultPage() {
               </div>
             </div>
             <div className="card-body" style={{ padding: 0 }}>
+              {/* 🔥 CORREGIDO: Usar URLs completas */}
               <img
-                src={`${view === "result" ? data.result_url : data.upload_url}`}
+                src={view === "result" ? resultImageUrl : originalImageUrl}
                 alt={view}
                 className="result-image"
                 style={{ borderRadius: 0, border: "none", maxHeight: 520 }}
+                onError={(e) => {
+                  console.error(`Error loading image: ${e.target.src}`);
+                  e.target.style.display = 'none';
+                }}
               />
             </div>
           </div>
