@@ -17,12 +17,16 @@ FROM nginx:1.25-alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar template — nginx lo procesa en runtime sustituyendo ${BACKEND_URL}
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# Config nginx con placeholder (no template, directo a conf.d)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Script que sustituye el placeholder en runtime
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD wget -qO- http://localhost || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/entrypoint.sh"]
