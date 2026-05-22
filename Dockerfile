@@ -46,7 +46,7 @@ RUN printf 'server {\n\
 \n\
     # Proxy para API - IMPORTANTE: apunta al puerto correcto\n\
     location /api/ {\n\
-        proxy_pass http://api.plagavision.djrbweb.com:5002/api/;\n\
+        proxy_pass http://api.plagavision.djrbweb.com:5002/;\n\
         proxy_http_version 1.1;\n\
         proxy_set_header Host $host;\n\
         proxy_set_header X-Real-IP $remote_addr;\n\
