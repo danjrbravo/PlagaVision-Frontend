@@ -1,13 +1,13 @@
 // src/api.js
+const isProduction = import.meta.env.MODE === 'production';
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// Si hay variable de entorno, úsala; si no, usa ruta relativa (para desarrollo)
-export const apiClient = (endpoint) => {
-  if (API_BASE_URL) {
-    // Producción: usar URL completa
-    return `${API_BASE_URL}/api${endpoint}`;
-  } else {
-    // Desarrollo: usar proxy de Vite
-    return `/api${endpoint}`;
-  }
-};
+// En desarrollo: usa ruta relativa (el proxy de Vite)
+// En producción: usa URL completa del backend
+export const API_URL = isProduction && API_BASE_URL
+  ? `${API_BASE_URL}/api`  // Producción: http://api.plagavision.djrbweb.com:5002/api
+  : '/api';                 // Desarrollo: /api (usa el proxy de Vite)
+
+// Para debug (opcional)
+console.log(`🔧 Modo: ${import.meta.env.MODE}`);
+console.log(`🌐 API URL: ${API_URL}`);
