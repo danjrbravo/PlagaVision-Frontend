@@ -4,30 +4,19 @@ import axios from "axios";
 import { useToast } from "../App";
 import { API_URL } from "../api.js";
 
-// API_URL ya incluye /api, así que no necesitamos duplicarlo
 const API = API_URL;
 
-// 🔥 NUEVA FUNCIÓN: Construir URL completa para imágenes
 const getImageUrl = (path) => {
   if (!path) return '';
-  
-  // Si ya es una URL completa, devolverla
   if (path.startsWith('http')) return path;
-  
-  // Si estamos en producción, construir URL completa con el backend
   if (import.meta.env.MODE === 'production') {
-    // Asegurarse de que el path comience con /api
     const apiPath = path.startsWith('/api') ? path : `/api${path}`;
-    // Usar la URL base del backend
     const BACKEND_BASE = import.meta.env.VITE_API_URL || 'http://api.plagavision.djrbweb.com:5002';
     return `${BACKEND_BASE}${apiPath}`;
   }
-  
-  // Desarrollo: usar ruta relativa
   return path;
 };
 
-// ── ICONS ────────────────────────────────────────────────────────
 function IconArrow() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -57,7 +46,6 @@ function IconDownload() {
   );
 }
 
-// ── CONFIDENCE BAR ────────────────────────────────────────────────
 function ConfBar({ value }) {
   const pct = Math.min(100, Math.max(0, value));
   const color = pct >= 80 ? "var(--accent)" : pct >= 50 ? "var(--warn)" : "var(--danger)";
@@ -89,16 +77,15 @@ function classColor(name, index) {
   return `hsl(${hue}, 70%, 55%)`;
 }
 
-// ── COMPONENT ────────────────────────────────────────────────────
 export default function ResultPage() {
   const { id }       = useParams();
   const navigate     = useNavigate();
   const addToast     = useToast();
 
-  const [data, setData]         = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [view, setView]         = useState("result");
-  const [deleting, setDeleting] = useState(false);
+  const [data, setData]               = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [view, setView]               = useState("result");
+  const [deleting, setDeleting]       = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -124,14 +111,18 @@ export default function ResultPage() {
   const downloadResult = async () => {
     setDownloading(true);
     try {
-      // 🔥 CORREGIDO: Usar URL completa para descargar
-      const imageUrl = getImageUrl(data.result_url);
+      const imageUrl = view === "result"
+        ? getImageUrl(data.result_url)
+        : getImageUrl(data.upload_url);
+      const filename = view === "result"
+        ? `resultado_${id}.jpg`
+        : `original_${id}.jpg`;
       const response = await fetch(imageUrl, { signal: AbortSignal.timeout(30000) });
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `resultado_${id}.jpg`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -170,8 +161,7 @@ export default function ResultPage() {
 
   const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
 
-  // 🔥 CORREGIDO: Obtener URLs completas de las imágenes
-  const resultImageUrl = getImageUrl(data.result_url);
+  const resultImageUrl   = getImageUrl(data.result_url);
   const originalImageUrl = getImageUrl(data.upload_url);
 
   return (
@@ -234,14 +224,12 @@ export default function ResultPage() {
               </div>
             </div>
             <div className="card-body" style={{ padding: 0 }}>
-              {/* 🔥 CORREGIDO: Usar URLs completas */}
               <img
                 src={view === "result" ? resultImageUrl : originalImageUrl}
                 alt={view}
                 className="result-image"
                 style={{ borderRadius: 0, border: "none", maxHeight: 520 }}
                 onError={(e) => {
-                  console.error(`Error loading image: ${e.target.src}`);
                   e.target.style.display = 'none';
                 }}
               />
